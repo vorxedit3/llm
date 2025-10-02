@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Model AI Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #a5b4fc;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 1rem;
+            gap: 1.5rem;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: rgba(30, 30, 46, 0.8);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .model-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .model-group {
+            margin-bottom: 1rem;
+        }
+
+        .model-group h3 {
+            color: #a5b4fc;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.3rem;
+        }
+
+        .model-option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .model-option:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .model-option.active {
+            background-color: rgba(76, 201, 240, 0.2);
+            border-left: 3px solid #4cc9f0;
+        }
+
+        .model-radio {
+            margin-right: 0.5rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(30, 30, 46, 0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-header {
+            padding: 1.2rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-model {
+            font-weight: 600;
+            color: #4cc9f0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            max-height: 500px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 12px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: rgba(40, 40, 60, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-sender {
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            opacity: 0.7;
+        }
+
+        .chat-input {
+            padding: 1.2rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            background-color: rgba(30, 30, 46, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.8rem;
+            color: white;
+            resize: none;
+            min-height: 60px;
+            font-size: 1rem;
+        }
+
+        .chat-input textarea:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 0 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 201, 240, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            padding: 0.5rem 1.2rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #a5b4fc;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background: rgba(40, 40, 60, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #a5b4fc;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: #a5b4fc;
+            font-size: 0.9rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Multi-Model AI Assistant</h1>
+        <p class="subtitle">Powered by OpenRouter API - Choose from multiple AI models</p>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="model-selector">
+                <div class="model-group">
+                    <h3>General Purpose Models</h3>
+                    <div class="model-option active" data-model="x-ai/grok-4-fast:free">
+                        <input type="radio" class="model-radio" name="model" checked>
+                        <label>Grok-4-Fast</label>
+                    </div>
+                    <div class="model-option" data-model="alibaba/tongyi-deepresearch-30b-a3b:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Tongyi DeepResearch</label>
+                    </div>
+                    <div class="model-option" data-model="meituan/longcat-flash-chat:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Longcat Flash Chat</label>
+                    </div>
+                    <div class="model-option" data-model="deepseek/deepseek-chat-v3.1:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>DeepSeek Chat</label>
+                    </div>
+                </div>
+
+                <div class="model-group">
+                    <h3>Specialized Models</h3>
+                    <div class="model-option" data-model="qwen/qwen3-coder:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Qwen Coder</label>
+                    </div>
+                    <div class="model-option" data-model="google/gemma-3n-e2b-it:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Gemma 3B</label>
+                    </div>
+                    <div class="model-option" data-model="google/gemma-3n-e4b-it:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Gemma 4B</label>
+                    </div>
+                    <div class="model-option" data-model="meta-llama/llama-3.3-8b-instruct:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Llama 3.3 8B</label>
+                    </div>
+                </div>
+
+                <div class="model-group">
+                    <h3>Advanced Models</h3>
+                    <div class="model-option" data-model="tencent/hunyuan-a13b-instruct:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Hunyuan A13B</label>
+                    </div>
+                    <div class="model-option" data-model="mistralai/mistral-small-3.2-24b-instruct:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Mistral Small</label>
+                    </div>
+                    <div class="model-option" data-model="moonshotai/kimi-dev-72b:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Kimi 72B</label>
+                    </div>
+                    <div class="model-option" data-model="moonshotai/kimi-vl-a3b-thinking:free">
+                        <input type="radio" class="model-radio" name="model">
+                        <label>Kimi Vision</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <div>
+                    <span>Current Model: </span>
+                    <span class="current-model">Grok-4-Fast</span>
+                </div>
+                <div>
+                    <span>Free Tier</span>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    <div class="message-sender">AI Assistant</div>
+                    <div>Hello! I'm your AI assistant. Select a model from the sidebar and start chatting. How can I help you today?</div>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <textarea id="messageInput" placeholder="Type your message here..."></textarea>
+                <button class="send-button" id="sendButton">Send</button>
+            </div>
+
+            <div class="status" id="status">
+                Ready to chat
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Powered by OpenRouter API | Multiple AI Models Available</p>
+    </footer>
+
+    <script>
+        // API Configuration
+        const API_KEY = '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';
+        const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const status = document.getElementById('status');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const currentModelElement = document.querySelector('.current-model');
+        
+        // Model selection
+        let currentModel = 'x-ai/grok-4-fast:free';
+        const modelOptions = document.querySelectorAll('.model-option');
+        
+        modelOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove active class from all options
+                modelOptions.forEach(opt => opt.classList.remove('active'));
+                
+                // Add active class to clicked option
+                option.classList.add('active');
+                
+                // Update current model
+                currentModel = option.getAttribute('data-model');
+                currentModelElement.textContent = option.querySelector('label').textContent;
+                
+                // Update radio button
+                option.querySelector('input').checked = true;
+                
+                status.textContent = `Model changed to ${option.querySelector('label').textContent}`;
+            });
+        });
+
+        // Send message function
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat('user', message);
+            messageInput.value = '';
+            
+            // Show typing indicator
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Update status
+            status.textContent = 'Sending request to AI...';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'HTTP-Referer': window.location.href,
+                        'X-Title': 'Multi-Model AI Chat'
+                    },
+                    body: JSON.stringify({
+                        model: currentModel,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: message
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Hide typing indicator
+                typingIndicator.style.display = 'none';
+                
+                // Add AI response to chat
+                if (data.choices && data.choices.length > 0) {
+                    const aiMessage = data.choices[0].message.content;
+                    addMessageToChat('ai', aiMessage);
+                    status.textContent = 'Response received';
+                } else {
+                    throw new Error('No response from AI');
+                }
+                
+            } catch (error) {
+                // Hide typing indicator
+                typingIndicator.style.display = 'none';
+                
+                // Show error message
+                console.error('Error:', error);
+                addMessageToChat('ai', `Sorry, I encountered an error: ${error.message}`);
+                status.textContent = 'Error occurred';
+            }
+        }
+
+        // Add message to chat
+        function addMessageToChat(sender, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            
+            if (sender === 'user') {
+                messageDiv.classList.add('user-message');
+                messageDiv.innerHTML = `
+                    <div class="message-sender">You</div>
+                    <div>${content}</div>
+                `;
+            } else {
+                messageDiv.classList.add('ai-message');
+                messageDiv.innerHTML = `
+                    <div class="message-sender">AI Assistant</div>
+                    <div>${content}</div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    </script>
+</body>
+</html>
